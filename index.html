@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opera d'Arte</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .toggle-btn.muted {
+            background: rgba(255, 50, 50, 0.3);
+            border-color: rgba(255, 50, 50, 0.5);
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cover-image {
+            width: 70vmin;
+            height: 70vmin;
+            max-width: 500px;
+            max-height: 500px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 20;
+        }
+
+        .glow-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .glow {
+            position: absolute;
+            bottom: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .glow-1 {
+            background: radial-gradient(circle, var(--color-1, #ff6b6b) 0%, transparent 70%);
+            animation-delay: 0s;
+        }
+
+        .glow-2 {
+            background: radial-gradient(circle, var(--color-2, #4ecdc4) 0%, transparent 70%);
+            animation-delay: 1.3s;
+            width: 100%;
+        }
+
+        .glow-3 {
+            background: radial-gradient(circle, var(--color-3, #95e1d3) 0%, transparent 70%);
+            animation-delay: 2.6s;
+            width: 110%;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateX(-50%) scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cover-image {
+                width: 80vmin;
+                height: 80vmin;
+            }
+
+            .toggle-btn {
+                top: 15px;
+                right: 15px;
+                padding: 10px 20px;
+                font-size: 12px;
+            }
+
+            .glow {
+                filter: blur(60px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-btn" id="toggleBtn">Audio ON</button>
+
+    <div class="container">
+        <img src="images/briefly.png" alt="Cover" class="cover-image" id="coverImage">
+    </div>
+
+    <div class="glow-container">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="glow glow-3"></div>
+    </div>
+
+    <audio id="audioPlayer" loop>
+        <source src="audio/briefly.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        const audio = document.getElementById('audioPlayer');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const coverImage = document.getElementById('coverImage');
+
+        // Autoplay attempt
+        const playAudio = () => {
+            audio.play().catch(e => {
+                console.log('Autoplay prevented:', e);
+                toggleBtn.textContent = 'Audio OFF';
+                toggleBtn.classList.add('muted');
+            });
+        };
+
+        // Try to play on load
+        window.addEventListener('load', playAudio);
+
+        // Toggle audio
+        toggleBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                toggleBtn.textContent = 'Audio ON';
+                toggleBtn.classList.remove('muted');
+            } else {
+                audio.pause();
+                toggleBtn.textContent = 'Audio OFF';
+                toggleBtn.classList.add('muted');
+            }
+        });
+
+        // Extract colors from image and apply to glow
+        function extractColors() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = coverImage.src;
+
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const colors = getProminentColors(imageData);
+
+                document.documentElement.style.setProperty('--color-1', colors[0]);
+                document.documentElement.style.setProperty('--color-2', colors[1]);
+                document.documentElement.style.setProperty('--color-3', colors[2]);
+            };
+        }
+
+        function getProminentColors(imageData) {
+            const data = imageData.data;
+            const colorMap = {};
+
+            for (let i = 0; i < data.length; i += 40) {
+                const r = Math.round(data[i] / 30) * 30;
+                const g = Math.round(data[i + 1] / 30) * 30;
+                const b = Math.round(data[i + 2] / 30) * 30;
+                const rgb = `rgb(${r},${g},${b})`;
+                colorMap[rgb] = (colorMap[rgb] || 0) + 1;
+            }
+
+            const sorted = Object.entries(colorMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(entry => entry[0]);
+
+            return sorted.length >= 3 ? sorted : ['#ff6b6b', '#4ecdc4', '#95e1d3'];
+        }
+
+        // Extract colors when image loads
+        coverImage.addEventListener('load', extractColors);
+        if (coverImage.complete) extractColors();
+    </script>
+</body>
+</html>
