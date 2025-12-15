@@ -145,6 +145,7 @@
             height: clamp(80px, 12vmin, 140px);
             border-radius: 999px;
             border: none;
+            outline: none;
             cursor: pointer;
             font-size: clamp(28px, 4vmin, 48px);
             color: rgba(255, 255, 255, 0.55);
@@ -153,6 +154,12 @@
             transition: transform 0.3s ease, opacity 0.3s ease, color 0.3s ease;
             z-index: 30;
             overflow: visible;
+        }
+
+        .audio-control:focus,
+        .audio-control:focus-visible {
+            outline: none;
+            box-shadow: none;
         }
 
         .audio-control:hover {
