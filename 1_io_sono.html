@@ -535,11 +535,12 @@
 
             progressSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
             progressPath.setAttribute('d',
-                `M ${margin},${margin} L ${w - margin},${margin} L ${w - margin},${h - margin} L ${margin},${h - margin} Z`
+                `M ${margin},${margin} L ${w - margin},${margin} L ${w - margin},${h - margin} L ${margin},${h - margin} L ${margin},${margin}`
             );
 
             pathLength = progressPath.getTotalLength();
         }
+
 
         // Update path on load and resize
         window.addEventListener('load', updateProgressPath);
